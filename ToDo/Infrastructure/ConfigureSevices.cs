@@ -4,7 +4,9 @@ using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using ToDo.Application.Data.Repositories;
 using ToDo.Infrastructure.Data;
+using ToDo.Infrastructure.Data.Repositories;
 
 namespace ToDo.Infrastructure;
 
@@ -21,6 +23,14 @@ public static class ConfigureSevices
                 configuration.GetConnectionString("ToDoDbContext")
                 );
         });
+
+        return services;
+    }
+
+    public static IServiceCollection AddDataRepositories(
+        this IServiceCollection services)
+    {
+        services.AddScoped<IToDoTaskRepository, ToDoTaskRepository>();
 
         return services;
     }
