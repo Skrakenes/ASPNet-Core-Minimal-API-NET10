@@ -1,5 +1,7 @@
 using ToDo.Infrastructure;
 using ToDo.Application;
+using ToDo.Api.Endpoints;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,7 +14,11 @@ builder.Services.AddToDoDbContext(builder.Configuration);
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
+builder.Services.AddValidation();
+
 var app = builder.Build();
+
+app.MapToDoTaskEndpoints();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

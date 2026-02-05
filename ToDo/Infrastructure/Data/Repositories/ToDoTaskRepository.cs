@@ -4,6 +4,7 @@ using System.Text;
 using ToDo.Application.Data.Repositories;
 using ToDo.Application.Common.Dto;
 using ToDo.Infrastructure.Data.Enteties;
+using Microsoft.EntityFrameworkCore;
 
 namespace ToDo.Infrastructure.Data.Repositories;
 
@@ -16,6 +17,18 @@ public class ToDoTaskRepository : IToDoTaskRepository
         _dbContext = dbContext;
     }
 
+    public async Task<GetToDoTaskDto?> Get(int id)
+    {
+        return await _dbContext.ToDoTasks
+            .Where(x => x.Id == id && !x.Deleted.HasValue)
+            .Select(x => new GetToDoTaskDto
+            {
+                Id = x.Id,
+                Task = x.Task,
+                Created = x.Created
+            }).SingleOrDefaultAsync();
+    }
+
     public async Task Create(CreateToDoTaskDto createToDoTask)
     {
         await _dbContext.ToDoTasks.AddAsync(new ToDoTask
@@ -25,5 +38,37 @@ public class ToDoTaskRepository : IToDoTaskRepository
         });
 
         await _dbContext.SaveChangesAsync();
+    }
+
+    public async Task<bool> Update(int id, UpdateToDoTaskDto updateToDoTask)
+    {
+        var entity = await _dbContext.ToDoTasks
+            .SingleOrDefaultAsync(x => x.Id == id &&
+            !x.Deleted.HasValue);
+
+        if (entity == null)
+            return false;
+
+        entity.Task = updateToDoTask.Task;
+
+        await _dbContext.SaveChangesAsync();
+
+        return true;
+    }
+
+    public async Task<bool> Delete(int id)
+    {
+        var entity = await _dbContext.ToDoTasks
+            .SingleOrDefaultAsync(x => x.Id == id &&
+            !x.Deleted.HasValue);
+
+        if (entity == null)
+            return false;
+
+        entity.Deleted = DateTime.UtcNow;
+
+        await _dbContext.SaveChangesAsync();
+
+        return true;
     }
 }

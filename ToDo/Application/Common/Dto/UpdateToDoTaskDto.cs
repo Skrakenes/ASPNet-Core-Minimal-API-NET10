@@ -5,7 +5,7 @@ using System.Text;
 
 namespace ToDo.Application.Common.Dto;
 
-public class CreateToDoTaskDto
+public class UpdateToDoTaskDto
 {
     [Required]
     [MinLength(10)]
