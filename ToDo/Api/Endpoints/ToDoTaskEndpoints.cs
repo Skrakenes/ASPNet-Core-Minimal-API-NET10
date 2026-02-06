@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http.HttpResults;
 using ToDo.Application.Common.Dto;
+using ToDo.Application.Common.Filters;
 using ToDo.Application.Services;
 
 namespace ToDo.Api.Endpoints;
@@ -8,21 +9,22 @@ public static class ToDoTaskEndpoints
 {
     public static WebApplication MapToDoTaskEndpoints(this WebApplication app)
     {
-        var group = app.MapGroup("/api/to-do-tasks");
-
-        group.MapGet("{id:int}", Get)
+        var group = app.MapGroup("/api/to-do-tasks")
+            .AddEndpointFilter<ToDoTaskEndpointFilter>()
             .ProducesProblem(StatusCodes.Status500InternalServerError);
+
+        group.MapGet("{id:int}", Get);
+            
+        group.MapGet("listing/{p:int:min(1)}", GetListing);
 
         group.MapPost("/", Create)
-            .ProducesValidationProblem()
-            .ProducesProblem(StatusCodes.Status500InternalServerError);
+            .ProducesValidationProblem();
 
         group.MapPut("{id:int}", Update)
-            .ProducesValidationProblem()
-            .ProducesProblem(StatusCodes.Status500InternalServerError);
+            .ProducesValidationProblem();
 
-        group.MapDelete("{id:int}", Delete)
-            .ProducesProblem(StatusCodes.Status500InternalServerError);
+        group.MapDelete("{id:int}", Delete);
+            
 
         return app;
     }
@@ -37,6 +39,20 @@ public static class ToDoTaskEndpoints
         }
 
         return TypedResults.Ok(toDoTask);
+    }
+
+    public static async Task<Results<Ok<ToDoTaskListingResultDto>, NotFound>> GetListing(
+        [AsParameters] ToDoTaskListingDto listing,
+        IToDoTaskService toDoTaskService)
+    {
+        var results = await toDoTaskService.GetListing(listing);
+
+        if (listing.Page > 1 && listing.Page > results.TotalPages)
+        {
+            return TypedResults.NotFound();
+        }
+
+        return TypedResults.Ok(results);
     }
 
     public static async Task<Created> Create(
