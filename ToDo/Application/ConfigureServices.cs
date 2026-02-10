@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Builder;
+﻿using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -7,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using ToDo.Application.Common.Handlers;
+using ToDo.Application.Common.Options;
 using ToDo.Application.Services;
 using ToDo.Application.Services.Implementations;
 
@@ -43,6 +45,35 @@ public static class ConfigureServices
             services.AddProblemDetails();
         }
 
+
+        return services;
+    }
+
+    public static IServiceCollection AddConfigurationOptions(
+        this IServiceCollection services)
+    {
+        services.AddOptions<ApiOptions>()
+            .BindConfiguration("Api");
+
+        return services;
+    }
+
+    public static IServiceCollection AddApiKeyAuthorization(
+        this IServiceCollection services)
+    {
+        services.AddAuthorization(options =>
+        {
+            options.AddPolicy("ApiKeyPolicy", policy =>
+            {
+                policy.AddAuthenticationSchemes(ApiKeyAuthenticationHandler.SchemeName);
+                policy.RequireAuthenticatedUser();
+            });
+        });
+
+        services.AddAuthentication()
+            .AddScheme<AuthenticationSchemeOptions,
+            ApiKeyAuthenticationHandler>(
+            ApiKeyAuthenticationHandler.SchemeName, null);
 
         return services;
     }

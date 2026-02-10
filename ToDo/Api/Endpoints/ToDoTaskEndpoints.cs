@@ -11,7 +11,8 @@ public static class ToDoTaskEndpoints
     {
         var group = app.MapGroup("/api/to-do-tasks")
             .AddEndpointFilter<ToDoTaskEndpointFilter>()
-            .ProducesProblem(StatusCodes.Status500InternalServerError);
+            .ProducesProblem(StatusCodes.Status500InternalServerError)
+            .RequireAuthorization();
 
         group.MapGet("{id:int}", Get);
             
